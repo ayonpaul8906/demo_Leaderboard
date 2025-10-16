@@ -2,15 +2,16 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC4QDo4v-fcJLUN85VmnhYFT5kiYuocrIg",
-  authDomain: "study-jam-leaderboard.firebaseapp.com",
-  projectId: "study-jam-leaderboard",
-  storageBucket: "study-jam-leaderboard.firebasestorage.app",
-  messagingSenderId: "608271611519",
-  appId: "1:608271611519:web:6ee95a6871dfdfa949f14a"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 export { db, collection, query, orderBy, onSnapshot };
+
