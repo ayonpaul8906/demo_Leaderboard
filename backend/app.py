@@ -53,11 +53,12 @@ logger = logging.getLogger(__name__)
 
 # ---------- INIT FIREBASE ----------
 try:
-    # Try environment variable first (better for Render)
     if FIREBASE_CREDENTIALS:
         logger.info("Loading Firebase credentials from environment variable")
-        import json
+        # Convert the env string to a dict
         cred_dict = json.loads(FIREBASE_CREDENTIALS)
+        # Replace escaped newlines with actual newlines
+        cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
         cred = credentials.Certificate(cred_dict)
     elif os.path.exists(FIREBASE_KEY_PATH):
         logger.info("Loading Firebase credentials from file")
@@ -71,6 +72,7 @@ try:
 except Exception as e:
     logger.error(f"❌ Firebase initialization failed: {str(e)}")
     raise
+
 
 # ---------- LOAD FILES ----------
 try:
@@ -421,4 +423,5 @@ if __name__ == "__main__":
     
     # Render uses PORT environment variable
     port = int(os.environ.get("PORT", 8000))
+
     app.run(host="0.0.0.0", port=port, debug=False)
