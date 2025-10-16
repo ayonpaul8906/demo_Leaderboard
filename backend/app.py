@@ -36,7 +36,7 @@ BATCH_SIZE = 25  # participants per batch
 BATCH_DELAY = 60  # seconds between batches to free memory
 POLITE_DELAY = 1.5  # seconds between participants
 PAGE_RETRY_ATTEMPTS = 2
-FETCH_TIMEOUT = 25000  # ms per page
+FETCH_TIMEOUT = 50000  # ms per page
 UPDATE_INTERVAL_MINUTES = 60  # hourly update
 AUTO_START = os.environ.get("AUTO_START", "true").lower() == "true"
 
@@ -379,4 +379,5 @@ if __name__ == "__main__":
         Thread(target=background_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
