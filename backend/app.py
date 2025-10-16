@@ -19,35 +19,29 @@ from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 import requests
 
-# Playwright imports
-from playwright.async_api import async_playwright, Browser, Page
+# Playwright
+from playwright.async_api import async_playwright, Page
 
-# ---------- CONFIG (tunable via ENV) ----------
+# ---------- CONFIG ----------
 BASE_DIR = os.path.dirname(__file__)
 PARTICIPANTS_FILE = os.path.join(BASE_DIR, "participants.json")
 LABS_FILE = os.path.join(BASE_DIR, "labs.json")
 
-# Firebase credentials: prefer JSON string in env for Render; fallback to file
 FIREBASE_KEY_PATH = os.path.join(BASE_DIR, "firebase-admin-key.json")
-FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")  # JSON string
+FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")
 
-# Performance tuning (safe defaults for Render free)
-CONCURRENCY = max(1, int(os.environ.get("CONCURRENCY", "1")))  # keep 1 on free tier
-BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "25"))          # participants per batch
-BATCH_DELAY = float(os.environ.get("BATCH_DELAY", "5.0"))     # seconds between batches
-POLITE_DELAY = float(os.environ.get("POLITE_DELAY", "1.5"))   # seconds between users
-PAGE_RETRY_ATTEMPTS = int(os.environ.get("PAGE_RETRY_ATTEMPTS", "2"))
-
-# Scheduler
-UPDATE_INTERVAL_MINUTES = int(os.environ.get("UPDATE_INTERVAL", "30"))
+# Render Free Tier safe settings
+CONCURRENCY = 2  # max concurrent pages to avoid memory overflow
+BATCH_SIZE = 25  # participants per batch
+BATCH_DELAY = 60  # seconds between batches to free memory
+POLITE_DELAY = 1.5  # seconds between participants
+PAGE_RETRY_ATTEMPTS = 2
+FETCH_TIMEOUT = 25000  # ms per page
+UPDATE_INTERVAL_MINUTES = 60  # hourly update
 AUTO_START = os.environ.get("AUTO_START", "true").lower() == "true"
 
-# Render keep-alive
-RENDER_URL = os.environ.get("RENDER_URL", "")  # e.g. https://your-app.onrender.com
+RENDER_URL = os.environ.get("RENDER_URL", "")
 KEEP_ALIVE = os.environ.get("KEEP_ALIVE", "true").lower() == "true"
-
-# Timeouts
-FETCH_TIMEOUT = int(os.environ.get("FETCH_TIMEOUT", "20000"))  # ms for Playwright
 
 # ---------- LOGGING ----------
 logging.basicConfig(
@@ -55,30 +49,26 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
-# reduce noisy logs from underlying libs
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
 logging.getLogger("playwright").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# ---------- INIT FIREBASE ----------
+# ---------- FIREBASE INIT ----------
 try:
     if FIREBASE_CREDENTIALS:
-        logger.info("Loading Firebase credentials from FIREBASE_CREDENTIALS env")
         cred_dict = json.loads(FIREBASE_CREDENTIALS)
         if "private_key" in cred_dict and isinstance(cred_dict["private_key"], str):
             cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
         cred = credentials.Certificate(cred_dict)
     elif os.path.exists(FIREBASE_KEY_PATH):
-        logger.info("Loading Firebase credentials from file")
         cred = credentials.Certificate(FIREBASE_KEY_PATH)
     else:
-        raise FileNotFoundError("No Firebase credentials found (env FIREBASE_CREDENTIALS or file).")
-
+        raise FileNotFoundError("No Firebase credentials found!")
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     logger.info("✅ Firebase initialized")
 except Exception as e:
-    logger.error(f"❌ Firebase initialization failed: {e}")
+    logger.error(f"❌ Firebase init failed: {e}")
     raise
 
 # ---------- LOAD CONFIG FILES ----------
@@ -93,8 +83,8 @@ except Exception as e:
 try:
     with open(LABS_FILE, "r", encoding="utf-8") as f:
         TARGET_LABS = json.load(f)
-    logger.info(f"✅ Loaded {len(TARGET_LABS)} target labs")
     TARGET_LABS_LOWER = [t.strip().lower() for t in TARGET_LABS]
+    logger.info(f"✅ Loaded {len(TARGET_LABS)} target labs")
 except Exception as e:
     logger.error(f"Failed to load labs.json: {e}")
     TARGET_LABS = []
@@ -116,9 +106,8 @@ update_status = {
     "success_count": 0
 }
 
-# ---------- KEEP-ALIVE ----------
+# ---------- KEEP ALIVE ----------
 def keep_alive_ping():
-    """Ping our own server to prevent Render from sleeping."""
     if RENDER_URL and KEEP_ALIVE:
         try:
             logger.info(f"🏓 Keep-alive ping to {RENDER_URL}")
@@ -137,12 +126,10 @@ def parse_completed_labs(html_text: str) -> List[str]:
     return completed
 
 async def fetch_profile_playwright(page: Page, url: str) -> str:
-    """Load page with retries and return HTML content."""
     last_error = None
     for attempt in range(PAGE_RETRY_ATTEMPTS):
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
-            # small wait to allow dynamic content to appear (tune if needed)
             await page.wait_for_timeout(1200)
             return await page.content()
         except Exception as e:
@@ -153,7 +140,6 @@ async def fetch_profile_playwright(page: Page, url: str) -> str:
     raise last_error
 
 async def process_user_with_page(user: dict, page: Page):
-    """Fetch, parse and write one user's result using the given page."""
     name = user.get("name", "Unknown").strip()
     profile = user.get("profile", "")
     user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
@@ -184,7 +170,6 @@ async def process_user_with_page(user: dict, page: Page):
         with update_lock:
             update_status["errors"].append({"name": name, "error": str(e)})
             update_status["progress"] += 1
-        # write error record (non-blocking)
         try:
             db.collection("leaderboard").document(user_id).set({
                 "userId": user_id,
@@ -201,10 +186,9 @@ async def process_user_with_page(user: dict, page: Page):
         await asyncio.sleep(POLITE_DELAY)
 
 async def run_full_update():
-    """Run the update using small batches; create browser per-batch to free memory."""
     with update_lock:
         if update_status["running"]:
-            logger.warning("Update already running — skipping this run")
+            logger.warning("Update already running — skipping")
             return
         update_status.update({
             "running": True,
@@ -218,76 +202,44 @@ async def run_full_update():
     logger.info(f"🚀 Starting update for {total} participants (batch_size={BATCH_SIZE})")
 
     try:
-        # Process in batches: create a fresh browser/context/page per batch (frees memory)
         for batch_index in range(0, total, BATCH_SIZE):
             batch = PARTICIPANTS[batch_index: batch_index + BATCH_SIZE]
             logger.info(f"➡️ Processing batch {batch_index // BATCH_SIZE + 1}: {len(batch)} users")
-
-            # keep-alive ping to help Render stay awake
             keep_alive_ping()
 
-            # Launch playwright for this batch (use WebKit for lower memory; fallback to chromium if needed)
             try:
                 async with async_playwright() as p:
-                    # try WebKit (usually lighter), fallback to chromium on exception
-                    browser = None
-                    try:
-                        browser = await p.webkit.launch(headless=True, args=[
-                            "--no-sandbox",
-                            "--disable-setuid-sandbox",
-                            "--disable-dev-shm-usage",
-                            "--disable-gpu",
-                            "--single-process",
-                        ])
-                    except Exception as ex_webkit:
-                        logger.warning(f"WebKit launch failed, falling back to chromium: {ex_webkit}")
-                        browser = await p.chromium.launch(headless=True, args=[
-                            "--no-sandbox",
-                            "--disable-setuid-sandbox",
-                            "--disable-dev-shm-usage",
-                            "--disable-gpu",
-                            "--single-process",
-                        ])
-
+                    browser = await p.webkit.launch(headless=True, args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--single-process",
+                    ])
                     context = await browser.new_context(
                         viewport={"width": 1280, "height": 720},
-                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
                     )
                     page = await context.new_page()
 
-                    # Sequentially process users in this batch (CONCURRENCY kept low)
                     for user in batch:
                         await process_user_with_page(user, page)
 
-                    # Close resources for this batch to free memory
-                    try:
-                        await page.close()
-                    except Exception:
-                        pass
-                    try:
-                        await context.close()
-                    except Exception:
-                        pass
-                    try:
-                        await browser.close()
-                    except Exception:
-                        pass
+                    await page.close()
+                    await context.close()
+                    await browser.close()
 
             except Exception as batch_exc:
                 logger.error(f"Batch-level error: {batch_exc}")
-                # ensure batch-level failures still count towards progress
                 with update_lock:
                     update_status["progress"] += len(batch)
                     update_status["errors"].append({"batch_error": str(batch_exc)})
 
-            # small pause between batches to reduce sustained memory/CPU pressure
-            logger.info(f"Sleeping {BATCH_DELAY}s between batches to release resources")
+            logger.info(f"Sleeping {BATCH_DELAY}s between batches to release memory")
             await asyncio.sleep(BATCH_DELAY)
 
-        # finished all batches
         logger.info(f"✅ Update finished. Success: {update_status['success_count']}/{total}")
 
-        # write metadata
         try:
             db.collection("metadata").document("last_update").set({
                 "timestamp": SERVER_TIMESTAMP,
@@ -307,7 +259,6 @@ async def run_full_update():
             update_status["last_run_end"] = datetime.utcnow().isoformat()
 
 def background_update():
-    """Run update in background thread entrypoint."""
     try:
         asyncio.run(run_full_update())
     except Exception as e:
@@ -337,7 +288,6 @@ if RENDER_URL and KEEP_ALIVE:
         name="Keep alive ping",
         replace_existing=True
     )
-    logger.info("✅ Keep-alive job scheduled every 10 minutes")
 
 def get_next_run_time():
     job = scheduler.get_job("leaderboard_update")
@@ -421,7 +371,6 @@ def ensure_scheduler():
 
 atexit.register(lambda: scheduler.shutdown() if scheduler.running else None)
 
-# ---------- RUN ----------
 if __name__ == "__main__":
     logger.info("Starting leaderboard server (Render-optimized)")
     logger.info(f"Participants: {len(PARTICIPANTS)}, batch_size={BATCH_SIZE}, concurrency={CONCURRENCY}")
