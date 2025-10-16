@@ -34,6 +34,7 @@ FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")  # JSON string
 CONCURRENCY = int(os.environ.get("CONCURRENCY", 3))  # Lower for Render's limited resources
 FETCH_TIMEOUT = 20000
 POLITE_DELAY = float(os.environ.get("POLITE_DELAY", 1.0))
+PAGE_RETRY_ATTEMPTS = 3  # Number of retries for page loading
 
 # Scheduler settings
 UPDATE_INTERVAL_MINUTES = int(os.environ.get("UPDATE_INTERVAL", 30))
@@ -72,7 +73,6 @@ try:
 except Exception as e:
     logger.error(f"❌ Firebase initialization failed: {str(e)}")
     raise
-
 
 # ---------- LOAD FILES ----------
 try:
@@ -132,28 +132,33 @@ def parse_completed_labs(html_text: str) -> List[str]:
     return completed
 
 async def fetch_profile_playwright(page: Page, url: str) -> str:
-    """Fetch participant profile HTML using Playwright."""
-    try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
-        await page.wait_for_timeout(2000)
-        return await page.content()
-    except Exception as e:
-        logger.error(f"Error fetching {url}: {str(e)}")
-        raise
+    """Fetch participant profile HTML using Playwright with retries."""
+    last_error = None
+    
+    for attempt in range(PAGE_RETRY_ATTEMPTS):
+        try:
+            await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
+            await page.wait_for_timeout(2000)
+            return await page.content()
+        except Exception as e:
+            last_error = e
+            if attempt < PAGE_RETRY_ATTEMPTS - 1:
+                logger.warning(f"Retry {attempt + 1}/{PAGE_RETRY_ATTEMPTS} for {url}")
+                await asyncio.sleep(1)
+            
+    raise last_error
 
-async def fetch_and_update(user: dict, browser: Browser, sem: asyncio.Semaphore):
+async def fetch_and_update(user: dict, page: Page, sem: asyncio.Semaphore):
     """Fetch profile, parse labs, update Firestore."""
     name = user.get("name", "Unknown User").strip()
     profile = user.get("profile")
     user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
-
-    page = None
     
     async with sem:
         try:
-            page = await browser.new_page()
-            
             logger.info(f"📥 Fetching: {name}")
+            
+            # Use existing page instead of creating new one
             html = await fetch_profile_playwright(page, profile)
             
             completed = parse_completed_labs(html)
@@ -199,8 +204,6 @@ async def fetch_and_update(user: dict, browser: Browser, sem: asyncio.Semaphore)
             except:
                 pass
         finally:
-            if page:
-                await page.close()
             await asyncio.sleep(POLITE_DELAY)
 
 async def run_full_update():
@@ -220,26 +223,50 @@ async def run_full_update():
     
     try:
         async with async_playwright() as p:
-            # Launch with minimal resources for Render
+            # Launch browser with Render-optimized settings
             browser = await p.chromium.launch(
                 headless=True,
                 args=[
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',  # Important for low-memory environments
+                    '--disable-dev-shm-usage',
                     '--disable-gpu',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',  # Use single process to save memory
                 ]
             )
             
-            sem = asyncio.Semaphore(CONCURRENCY)
-            tasks = [fetch_and_update(u, browser, sem) for u in PARTICIPANTS]
-            await asyncio.gather(*tasks, return_exceptions=True)
+            try:
+                # Create pages first
+                pages = []
+                context = await browser.new_context(
+                    viewport={'width': 1280, 'height': 720},
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
+                )
+                
+                # Pre-create all pages
+                for _ in range(min(CONCURRENCY, len(PARTICIPANTS))):
+                    page = await context.new_page()
+                    pages.append(page)
+                
+                # Process participants in batches
+                sem = asyncio.Semaphore(CONCURRENCY)
+                tasks = []
+                
+                for i, user in enumerate(PARTICIPANTS):
+                    page_index = i % len(pages)
+                    tasks.append(fetch_and_update(user, pages[page_index], sem))
+                
+                await asyncio.gather(*tasks, return_exceptions=True)
+                
+            finally:
+                # Clean up
+                for page in pages:
+                    try:
+                        await page.close()
+                    except:
+                        pass
+                await context.close()
+                await browser.close()
             
-            await browser.close()
-        
         logger.info(f"✅ Update completed. Success: {update_status['success_count']}/{len(PARTICIPANTS)}")
         
         # Update metadata
@@ -337,7 +364,7 @@ def get_update_status():
     status["next_run"] = get_next_run_time()
     return jsonify(status)
 
-@app.route("/trigger-update", methods=["POST", "GET"])  # Allow GET for easy testing
+@app.route("/trigger-update", methods=["POST", "GET"])
 def trigger_manual_update():
     """Manually trigger an update."""
     if update_status["running"]:
@@ -423,5 +450,4 @@ if __name__ == "__main__":
     
     # Render uses PORT environment variable
     port = int(os.environ.get("PORT", 8000))
-
     app.run(host="0.0.0.0", port=port, debug=False)
