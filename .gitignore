@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 .env
 firebase-admin-key.json
+backend/firebase-admin-key.json
