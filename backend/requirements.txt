@@ -1,0 +1,16 @@
+# flask
+# flask-cors
+# uvicorn[standard]
+# aiohttp
+# google-cloud-firestore
+# firebase-admin
+# beautifulsoup4
+# python-dotenv
+
+flask==3.0.0
+flask-cors==4.0.0
+firebase-admin==6.3.0
+playwright==1.40.0
+beautifulsoup4==4.12.2
+apscheduler==3.10.4
+lxml==4.9.3

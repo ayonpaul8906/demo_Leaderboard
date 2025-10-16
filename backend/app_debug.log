@@ -1,0 +1,311 @@
+2025-10-16 02:54:29,347 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-10-16 02:54:30,575 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 02:54:32,473 - DEBUG - Sample participant: {'id': 'u001', 'name': 'Ayon Paul', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b'}
+2025-10-16 02:54:32,492 - DEBUG - Sample labs: ['The Basics of Google Cloud Compute', 'Get Started with Cloud Storage', 'Get Started with Pub/Sub']
+2025-10-16 02:54:32,522 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.31.70:8000
+2025-10-16 02:54:32,526 - INFO - [33mPress CTRL+C to quit[0m
+2025-10-16 02:54:33,158 - INFO - 127.0.0.1 - - [16/Oct/2025 02:54:33] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:54:39,824 - DEBUG - Using proactor: IocpProactor
+2025-10-16 02:54:39,856 - INFO - 127.0.0.1 - - [16/Oct/2025 02:54:39] "GET /update-leaderboard HTTP/1.1" 200 -
+2025-10-16 02:54:43,730 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 02:54:43,736 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 02:54:43,773 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 02:54:43,775 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 02:54:43,931 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:54:43,934 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:54:43,955 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:54:43,956 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:54:44,003 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 02:54:44,004 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 02:54:44,016 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 02:54:44,017 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 02:54:44,030 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 02:54:44,031 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 02:54:44,040 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 02:54:44,041 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 02:54:45,852 - INFO - 127.0.0.1 - - [16/Oct/2025 02:54:45] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:54:54,802 - DEBUG - Page content length: 46797 characters
+2025-10-16 02:54:55,354 - DEBUG - Total labs found: 0
+2025-10-16 02:54:56,339 - DEBUG - Document data: {'userId': 'u005', 'name': 'Arnab Ghosh', 'profile': 'https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Arnab Ghosh', 'email': '', 'profilePic': ''}
+2025-10-16 02:54:58,207 - DEBUG - Page content length: 46725 characters
+2025-10-16 02:54:58,365 - DEBUG - Total labs found: 0
+2025-10-16 02:54:58,424 - DEBUG - Document data: {'userId': 'u007', 'name': 'Shubham Gorai', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shubham Gorai', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:00,144 - DEBUG - Page content length: 46744 characters
+2025-10-16 02:55:00,192 - DEBUG - Total labs found: 0
+2025-10-16 02:55:00,207 - DEBUG - Document data: {'userId': 'u008', 'name': 'Priyanshu Bakshi', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Priyanshu Bakshi', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:01,913 - DEBUG - Page content length: 46765 characters
+2025-10-16 02:55:01,994 - DEBUG - Total labs found: 0
+2025-10-16 02:55:02,014 - DEBUG - Document data: {'userId': 'u006', 'name': 'Shivam Kumar Mishra', 'profile': 'https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shivam Kumar Mishra', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:03,720 - INFO - 127.0.0.1 - - [16/Oct/2025 02:55:03] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:55:03,790 - DEBUG - Page content length: 46686 characters
+2025-10-16 02:55:03,850 - DEBUG - Total labs found: 0
+2025-10-16 02:55:03,875 - DEBUG - Document data: {'userId': 'u002', 'name': 'Ayon Paul (lead)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul (lead)', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:06,029 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 02:55:06,031 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 02:55:06,090 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 02:55:06,092 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 02:55:06,160 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 02:55:06,162 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 02:55:06,197 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 02:55:06,198 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 02:55:06,311 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 02:55:06,312 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 02:55:08,619 - DEBUG - Page content length: 56818 characters
+2025-10-16 02:55:08,690 - DEBUG - Total labs found: 0
+2025-10-16 02:55:08,710 - DEBUG - Document data: {'userId': 'u001', 'name': 'Ayon Paul', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:10,831 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 02:55:10,832 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 02:55:16,040 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 02:55:16,040 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 02:55:24,554 - DEBUG - Page content length: 46638 characters
+2025-10-16 02:55:24,594 - DEBUG - Total labs found: 0
+2025-10-16 02:55:24,619 - DEBUG - Document data: {'userId': 'u009', 'name': 'PRIYANSHU SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'PRIYANSHU SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:26,368 - DEBUG - Page content length: 46687 characters
+2025-10-16 02:55:26,397 - DEBUG - Total labs found: 0
+2025-10-16 02:55:26,413 - DEBUG - Document data: {'userId': 'u0014', 'name': 'Sujay Roy', 'profile': 'https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Sujay Roy', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:28,156 - DEBUG - Page content length: 46693 characters
+2025-10-16 02:55:28,225 - DEBUG - Total labs found: 0
+2025-10-16 02:55:28,268 - DEBUG - Document data: {'userId': 'u0011', 'name': 'SOMYA SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'SOMYA SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:30,027 - DEBUG - Page content length: 46759 characters
+2025-10-16 02:55:30,134 - DEBUG - Total labs found: 0
+2025-10-16 02:55:30,157 - DEBUG - Document data: {'userId': 'u0013', 'name': 'Pawan Sharma)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Pawan Sharma)', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:31,974 - DEBUG - Page content length: 46717 characters
+2025-10-16 02:55:32,039 - DEBUG - Total labs found: 0
+2025-10-16 02:55:32,061 - DEBUG - Document data: {'userId': 'u0015', 'name': 'Archak Khandayit', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Archak Khandayit', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:32,595 - INFO - 127.0.0.1 - - [16/Oct/2025 02:55:32] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:55:34,274 - DEBUG - Page content length: 46583 characters
+2025-10-16 02:55:34,347 - DEBUG - Total labs found: 0
+2025-10-16 02:55:34,367 - DEBUG - Document data: {'userId': 'u0010', 'name': 'Meghna Chatterjee', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Meghna Chatterjee', 'email': '', 'profilePic': ''}
+2025-10-16 02:55:36,151 - DEBUG - Page content length: 46700 characters
+2025-10-16 02:55:36,218 - DEBUG - Total labs found: 0
+2025-10-16 02:55:36,241 - DEBUG - Document data: {'userId': 'u0012', 'name': 'Dipika kumari', 'profile': 'https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Dipika kumari', 'email': '', 'profilePic': ''}
+2025-10-16 02:56:02,547 - INFO - 127.0.0.1 - - [16/Oct/2025 02:56:02] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:56:32,571 - INFO - 127.0.0.1 - - [16/Oct/2025 02:56:32] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:57:02,545 - INFO - 127.0.0.1 - - [16/Oct/2025 02:57:02] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:57:12,547 - DEBUG - Using proactor: IocpProactor
+2025-10-16 02:57:12,588 - INFO - 127.0.0.1 - - [16/Oct/2025 02:57:12] "GET /update-leaderboard HTTP/1.1" 200 -
+2025-10-16 02:57:16,045 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 02:57:16,046 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 02:57:16,091 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 02:57:16,091 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 02:57:16,114 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:57:16,115 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:57:16,153 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:57:16,154 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 02:57:16,197 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 02:57:16,201 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 02:57:16,618 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 02:57:16,624 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 02:57:16,642 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 02:57:16,642 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 02:57:16,685 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 02:57:16,686 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 02:57:18,422 - INFO - 127.0.0.1 - - [16/Oct/2025 02:57:18] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:57:25,961 - DEBUG - Page content length: 46795 characters
+2025-10-16 02:57:26,645 - DEBUG - Total labs found: 0
+2025-10-16 02:57:27,351 - DEBUG - Document data: {'userId': 'u005', 'name': 'Arnab Ghosh', 'profile': 'https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Arnab Ghosh', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:29,122 - DEBUG - Page content length: 46719 characters
+2025-10-16 02:57:29,162 - DEBUG - Total labs found: 0
+2025-10-16 02:57:29,326 - DEBUG - Document data: {'userId': 'u002', 'name': 'Ayon Paul (lead)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul (lead)', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:31,416 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 02:57:31,417 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 02:57:31,443 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 02:57:31,443 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 02:57:32,468 - INFO - 127.0.0.1 - - [16/Oct/2025 02:57:32] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:57:34,063 - DEBUG - Page content length: 46732 characters
+2025-10-16 02:57:34,100 - DEBUG - Total labs found: 0
+2025-10-16 02:57:34,153 - DEBUG - Document data: {'userId': 'u006', 'name': 'Shivam Kumar Mishra', 'profile': 'https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shivam Kumar Mishra', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:35,884 - DEBUG - Page content length: 46692 characters
+2025-10-16 02:57:35,922 - DEBUG - Total labs found: 0
+2025-10-16 02:57:35,947 - DEBUG - Document data: {'userId': 'u007', 'name': 'Shubham Gorai', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shubham Gorai', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:37,691 - DEBUG - Page content length: 46750 characters
+2025-10-16 02:57:37,789 - DEBUG - Total labs found: 0
+2025-10-16 02:57:37,809 - DEBUG - Document data: {'userId': 'u008', 'name': 'Priyanshu Bakshi', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Priyanshu Bakshi', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:39,496 - DEBUG - Page content length: 56788 characters
+2025-10-16 02:57:39,558 - DEBUG - Total labs found: 0
+2025-10-16 02:57:39,570 - DEBUG - Document data: {'userId': 'u001', 'name': 'Ayon Paul', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:41,837 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 02:57:41,838 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 02:57:42,011 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 02:57:42,017 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 02:57:42,041 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 02:57:42,043 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 02:57:42,079 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 02:57:42,079 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 02:57:48,397 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 02:57:48,400 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 02:57:52,005 - DEBUG - Page content length: 46637 characters
+2025-10-16 02:57:52,046 - DEBUG - Total labs found: 0
+2025-10-16 02:57:52,337 - DEBUG - Document data: {'userId': 'u009', 'name': 'PRIYANSHU SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'PRIYANSHU SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:54,103 - DEBUG - Page content length: 46610 characters
+2025-10-16 02:57:54,159 - DEBUG - Total labs found: 0
+2025-10-16 02:57:54,187 - DEBUG - Document data: {'userId': 'u0010', 'name': 'Meghna Chatterjee', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Meghna Chatterjee', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:56,061 - DEBUG - Page content length: 46726 characters
+2025-10-16 02:57:56,114 - DEBUG - Total labs found: 0
+2025-10-16 02:57:56,148 - DEBUG - Document data: {'userId': 'u0011', 'name': 'SOMYA SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'SOMYA SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:57,975 - DEBUG - Page content length: 46731 characters
+2025-10-16 02:57:58,015 - DEBUG - Total labs found: 0
+2025-10-16 02:57:58,031 - DEBUG - Document data: {'userId': 'u0013', 'name': 'Pawan Sharma)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Pawan Sharma)', 'email': '', 'profilePic': ''}
+2025-10-16 02:57:59,754 - DEBUG - Page content length: 46700 characters
+2025-10-16 02:57:59,789 - DEBUG - Total labs found: 0
+2025-10-16 02:57:59,818 - DEBUG - Document data: {'userId': 'u0012', 'name': 'Dipika kumari', 'profile': 'https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Dipika kumari', 'email': '', 'profilePic': ''}
+2025-10-16 02:58:01,759 - DEBUG - Page content length: 46717 characters
+2025-10-16 02:58:01,866 - DEBUG - Total labs found: 0
+2025-10-16 02:58:01,889 - DEBUG - Document data: {'userId': 'u0014', 'name': 'Sujay Roy', 'profile': 'https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Sujay Roy', 'email': '', 'profilePic': ''}
+2025-10-16 02:58:03,811 - DEBUG - Page content length: 46720 characters
+2025-10-16 02:58:03,854 - INFO - 127.0.0.1 - - [16/Oct/2025 02:58:03] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:58:03,912 - DEBUG - Total labs found: 0
+2025-10-16 02:58:03,936 - DEBUG - Document data: {'userId': 'u0015', 'name': 'Archak Khandayit', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Archak Khandayit', 'email': '', 'profilePic': ''}
+2025-10-16 02:58:32,528 - INFO - 127.0.0.1 - - [16/Oct/2025 02:58:32] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:59:02,521 - INFO - 127.0.0.1 - - [16/Oct/2025 02:59:02] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 02:59:32,508 - INFO - 127.0.0.1 - - [16/Oct/2025 02:59:32] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 03:00:02,505 - INFO - 127.0.0.1 - - [16/Oct/2025 03:00:02] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:55:58,544 - DEBUG - Resetting dropped connection: oauth2.googleapis.com
+2025-10-16 10:55:59,181 - DEBUG - Starting new HTTPS connection (2): oauth2.googleapis.com:443
+2025-10-16 10:55:59,220 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 10:55:59,762 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 10:56:01,057 - INFO - 127.0.0.1 - - [16/Oct/2025 10:56:01] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:56:01,061 - INFO - 127.0.0.1 - - [16/Oct/2025 10:56:01] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:56:02,454 - INFO - 127.0.0.1 - - [16/Oct/2025 10:56:02] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:56:08,511 - INFO - 127.0.0.1 - - [16/Oct/2025 10:56:08] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:56:38,789 - INFO - 127.0.0.1 - - [16/Oct/2025 10:56:38] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:01,894 - DEBUG - Using proactor: IocpProactor
+2025-10-16 10:57:01,903 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:01] "GET /update-leaderboard HTTP/1.1" 200 -
+2025-10-16 10:57:03,142 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 10:57:03,143 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b
+2025-10-16 10:57:03,146 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 10:57:03,146 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69
+2025-10-16 10:57:03,168 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 10:57:03,168 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 10:57:03,192 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 10:57:03,193 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/298861df-a9d9-4bcd-8676-4523ec587ed9
+2025-10-16 10:57:03,211 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 10:57:03,211 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e
+2025-10-16 10:57:03,230 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 10:57:03,230 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79
+2025-10-16 10:57:03,246 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 10:57:03,246 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5
+2025-10-16 10:57:03,262 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 10:57:03,262 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954
+2025-10-16 10:57:07,586 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:07] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:08,763 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:08] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:11,268 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:11] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:12,887 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:12] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:15,006 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:15] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:16,217 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:16] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:16,456 - DEBUG - Page content length: 46974 characters
+2025-10-16 10:57:17,026 - DEBUG - Total labs found: 0
+2025-10-16 10:57:18,306 - DEBUG - Document data: {'userId': 'u007', 'name': 'Shubham Gorai', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8ce988bf-2fbc-4ca4-899c-2d046edc06d5', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shubham Gorai', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:20,929 - DEBUG - Page content length: 46738 characters
+2025-10-16 10:57:21,575 - DEBUG - Total labs found: 0
+2025-10-16 10:57:22,905 - DEBUG - Document data: {'userId': 'u005', 'name': 'Arnab Ghosh', 'profile': 'https://www.cloudskillsboost.google/public_profiles/d80cc3ff-cca7-4938-835e-ce577417f87e', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Arnab Ghosh', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:24,762 - DEBUG - Page content length: 46706 characters
+2025-10-16 10:57:25,246 - DEBUG - Total labs found: 0
+2025-10-16 10:57:25,915 - DEBUG - Document data: {'userId': 'u006', 'name': 'Shivam Kumar Mishra', 'profile': 'https://www.cloudskillsboost.google/public_profiles/025da42c-e3f5-4de4-808c-33b677ae7e79', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Shivam Kumar Mishra', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:27,887 - DEBUG - Page content length: 46686 characters
+2025-10-16 10:57:27,932 - DEBUG - Total labs found: 0
+2025-10-16 10:57:28,087 - DEBUG - Document data: {'userId': 'u002', 'name': 'Ayon Paul (lead)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/e422d36b-2611-47f7-8dab-a9a911113f69', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul (lead)', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:30,075 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 10:57:30,076 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba
+2025-10-16 10:57:30,273 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 10:57:30,316 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2
+2025-10-16 10:57:30,440 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 10:57:30,441 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160
+2025-10-16 10:57:30,474 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 10:57:30,476 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4
+2025-10-16 10:57:30,909 - DEBUG - Page content length: 46712 characters
+2025-10-16 10:57:30,975 - DEBUG - Total labs found: 0
+2025-10-16 10:57:30,991 - DEBUG - Document data: {'userId': 'u008', 'name': 'Priyanshu Bakshi', 'profile': 'https://www.cloudskillsboost.google/public_profiles/8321cc10-057b-402d-87c7-2fa27c6bb954', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Priyanshu Bakshi', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:33,052 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 10:57:33,052 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2
+2025-10-16 10:57:35,287 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 10:57:35,288 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d
+2025-10-16 10:57:35,341 - DEBUG - Profile URL: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 10:57:35,342 - DEBUG - Navigating to: https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb
+2025-10-16 10:57:35,686 - DEBUG - Page content length: 56818 characters
+2025-10-16 10:57:35,722 - DEBUG - Total labs found: 0
+2025-10-16 10:57:35,767 - DEBUG - Document data: {'userId': 'u001', 'name': 'Ayon Paul', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Ayon Paul', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:42,074 - DEBUG - Page content length: 46700 characters
+2025-10-16 10:57:42,099 - DEBUG - Total labs found: 0
+2025-10-16 10:57:42,147 - DEBUG - Document data: {'userId': 'u0012', 'name': 'Dipika kumari', 'profile': 'https://www.cloudskillsboost.google/public_profiles/cfba0cee-28f7-4414-8463-b21d916ff0c4', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Dipika kumari', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:43,861 - DEBUG - Page content length: 46641 characters
+2025-10-16 10:57:43,900 - DEBUG - Total labs found: 0
+2025-10-16 10:57:43,921 - DEBUG - Document data: {'userId': 'u0010', 'name': 'Meghna Chatterjee', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f099196f-4861-493d-977b-ede66b92b3f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Meghna Chatterjee', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:45,686 - INFO - 127.0.0.1 - - [16/Oct/2025 10:57:45] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:57:46,023 - DEBUG - Page content length: 46723 characters
+2025-10-16 10:57:46,068 - DEBUG - Total labs found: 0
+2025-10-16 10:57:46,083 - DEBUG - Document data: {'userId': 'u0011', 'name': 'SOMYA SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/ca231b25-a689-44fa-b284-a2ccb709b160', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'SOMYA SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:47,797 - DEBUG - Page content length: 46726 characters
+2025-10-16 10:57:47,839 - DEBUG - Total labs found: 0
+2025-10-16 10:57:47,856 - DEBUG - Document data: {'userId': 'u0013', 'name': 'Pawan Sharma)', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f4c3ace8-872a-4417-99bf-878bbe54e5f2', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Pawan Sharma)', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:49,546 - DEBUG - Page content length: 46605 characters
+2025-10-16 10:57:49,584 - DEBUG - Total labs found: 0
+2025-10-16 10:57:49,601 - DEBUG - Document data: {'userId': 'u009', 'name': 'PRIYANSHU SINGH', 'profile': 'https://www.cloudskillsboost.google/public_profiles/c5144b2f-d31c-4381-8836-867dde2297ba', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'PRIYANSHU SINGH', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:51,392 - DEBUG - Page content length: 46685 characters
+2025-10-16 10:57:51,419 - DEBUG - Total labs found: 0
+2025-10-16 10:57:51,436 - DEBUG - Document data: {'userId': 'u0015', 'name': 'Archak Khandayit', 'profile': 'https://www.cloudskillsboost.google/public_profiles/f6c8f3b2-2d75-4980-b3cc-bd97f6bca9cb', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Archak Khandayit', 'email': '', 'profilePic': ''}
+2025-10-16 10:57:53,132 - DEBUG - Page content length: 46722 characters
+2025-10-16 10:57:53,191 - DEBUG - Total labs found: 0
+2025-10-16 10:57:53,206 - DEBUG - Document data: {'userId': 'u0014', 'name': 'Sujay Roy', 'profile': 'https://www.cloudskillsboost.google/public_profiles/765004fd-8f08-4a43-a943-60612cf58b3d', 'completed_labs': [], 'completed_count': 0, 'last_updated': Sentinel: Value used to set a document field to the server timestamp., 'displayName': 'Sujay Roy', 'email': '', 'profilePic': ''}
+2025-10-16 10:58:14,818 - INFO - 127.0.0.1 - - [16/Oct/2025 10:58:14] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:58:44,814 - INFO - 127.0.0.1 - - [16/Oct/2025 10:58:44] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:59:14,830 - INFO - 127.0.0.1 - - [16/Oct/2025 10:59:14] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 10:59:44,827 - INFO - 127.0.0.1 - - [16/Oct/2025 10:59:44] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:00:16,170 - INFO - 127.0.0.1 - - [16/Oct/2025 11:00:16] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:00:44,915 - INFO - 127.0.0.1 - - [16/Oct/2025 11:00:44] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:01:45,844 - INFO - 127.0.0.1 - - [16/Oct/2025 11:01:45] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:02:46,800 - INFO - 127.0.0.1 - - [16/Oct/2025 11:02:46] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:03:47,828 - INFO - 127.0.0.1 - - [16/Oct/2025 11:03:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:04:47,949 - INFO - 127.0.0.1 - - [16/Oct/2025 11:04:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:05:47,850 - INFO - 127.0.0.1 - - [16/Oct/2025 11:05:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:06:47,872 - INFO - 127.0.0.1 - - [16/Oct/2025 11:06:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:07:47,957 - INFO - 127.0.0.1 - - [16/Oct/2025 11:07:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:08:47,971 - INFO - 127.0.0.1 - - [16/Oct/2025 11:08:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 11:09:47,831 - INFO - 127.0.0.1 - - [16/Oct/2025 11:09:47] "GET /leaderboard-data HTTP/1.1" 200 -
+2025-10-16 13:09:43,449 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-10-16 13:09:44,254 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 13:09:45,984 - DEBUG - Sample participant: {'id': '1', 'name': 'Ayon Paul', 'email': '', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'profilePic': ''}
+2025-10-16 13:09:45,988 - DEBUG - Sample labs: ['The Basics of Google Cloud Compute', 'Get Started with Cloud Storage', 'Get Started with Pub/Sub']
+2025-10-16 13:09:45,999 - INFO - Participants: 14
+2025-10-16 13:09:45,999 - INFO - Labs: 20
+2025-10-16 13:09:46,000 - INFO - Firebase key: True
+2025-10-16 13:09:46,037 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8000
+2025-10-16 13:09:46,037 - INFO - [33mPress CTRL+C to quit[0m
+2025-10-16 13:09:46,039 - INFO -  * Restarting with stat
+2025-10-16 13:09:47,351 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-10-16 13:09:48,063 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 13:09:49,910 - DEBUG - Sample participant: {'id': '1', 'name': 'Ayon Paul', 'email': '', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'profilePic': ''}
+2025-10-16 13:09:49,921 - DEBUG - Sample labs: ['The Basics of Google Cloud Compute', 'Get Started with Cloud Storage', 'Get Started with Pub/Sub']
+2025-10-16 13:09:49,932 - INFO - Participants: 14
+2025-10-16 13:09:49,932 - INFO - Labs: 20
+2025-10-16 13:09:49,932 - INFO - Firebase key: True
+2025-10-16 13:09:49,952 - WARNING -  * Debugger is active!
+2025-10-16 13:09:49,956 - INFO -  * Debugger PIN: 132-176-190
+2025-10-16 13:12:45,353 - INFO -  * Detected change in 'D:\\Study Jam\\Leaderboard\\backend\\app.py', reloading
+2025-10-16 13:12:47,513 - INFO -  * Restarting with stat
+2025-10-16 13:12:48,687 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-10-16 13:12:49,510 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 13:12:51,321 - DEBUG - Sample participant: {'id': '1', 'name': 'Ayon Paul', 'email': '', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'profilePic': ''}
+2025-10-16 13:12:51,334 - DEBUG - Sample labs: ['The Basics of Google Cloud Compute', 'Get Started with Cloud Storage', 'Get Started with Pub/Sub']
+2025-10-16 13:12:51,352 - INFO - Participants: 14
+2025-10-16 13:12:51,352 - INFO - Labs: 20
+2025-10-16 13:12:51,353 - INFO - Firebase key: True
+2025-10-16 13:12:51,373 - WARNING -  * Debugger is active!
+2025-10-16 13:12:51,381 - INFO -  * Debugger PIN: 132-176-190
+2025-10-16 13:13:12,196 - INFO -  * Detected change in 'D:\\Study Jam\\Leaderboard\\backend\\app.py', reloading
+2025-10-16 13:13:14,330 - INFO -  * Restarting with stat
+2025-10-16 13:13:15,559 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-10-16 13:13:16,283 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-10-16 13:13:18,000 - DEBUG - Sample participant: {'id': '1', 'name': 'Ayon Paul', 'email': '', 'profile': 'https://www.cloudskillsboost.google/public_profiles/5f135371-e7dc-44f9-8049-49796797733b', 'profilePic': ''}
+2025-10-16 13:13:18,002 - DEBUG - Sample labs: ['The Basics of Google Cloud Compute', 'Get Started with Cloud Storage', 'Get Started with Pub/Sub']
+2025-10-16 13:13:18,009 - INFO - Participants: 14
+2025-10-16 13:13:18,009 - INFO - Labs: 20
+2025-10-16 13:13:18,009 - INFO - Firebase key: True
+2025-10-16 13:13:18,030 - WARNING -  * Debugger is active!
+2025-10-16 13:13:18,033 - INFO -  * Debugger PIN: 132-176-190
+2025-10-16 13:13:55,924 - INFO -  * Detected change in 'D:\\Study Jam\\Leaderboard\\backend\\app.py', reloading
+2025-10-16 13:13:58,120 - INFO -  * Restarting with stat
