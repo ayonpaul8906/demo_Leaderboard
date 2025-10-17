@@ -1,11 +1,9 @@
-# app.py (Optimized: resource-blocking, light waits, concurrency=2, shorter batch delay)
+# app.py
 import asyncio
 import json
 import logging
 import os
 import sys
-import gc
-import uuid
 from datetime import datetime
 from typing import List
 from threading import Thread, Lock
@@ -15,11 +13,14 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import SERVER_TIMESTAMP
+import uuid
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 import requests
-from playwright.async_api import async_playwright, Page, BrowserContext
+
+# Playwright
+from playwright.async_api import async_playwright, Page
 
 # ---------- CONFIG ----------
 BASE_DIR = os.path.dirname(__file__)
@@ -29,21 +30,25 @@ LABS_FILE = os.path.join(BASE_DIR, "labs.json")
 FIREBASE_KEY_PATH = os.path.join(BASE_DIR, "firebase-admin-key.json")
 FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")
 
-# Tunables (adjust via env if needed)
-CONCURRENCY = int(os.environ.get("CONCURRENCY", "2"))   # try 1 or 2 on Render
-BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "25"))    # number per batch
-BATCH_DELAY = float(os.environ.get("BATCH_DELAY", "10"))  # seconds between batches (reduced)
-POLITE_DELAY = float(os.environ.get("POLITE_DELAY", "0.5"))  # seconds between users
-PAGE_RETRY_ATTEMPTS = int(os.environ.get("PAGE_RETRY_ATTEMPTS", "2"))
-FETCH_TIMEOUT = int(os.environ.get("FETCH_TIMEOUT", "45000"))  # ms
-UPDATE_INTERVAL_MINUTES = int(os.environ.get("UPDATE_INTERVAL", "60"))
+# Render Free Tier safe settings
+CONCURRENCY = 2  # max concurrent pages to avoid memory overflow
+BATCH_SIZE = 25  # participants per batch
+BATCH_DELAY = 60  # seconds between batches to free memory
+POLITE_DELAY = 1.5  # seconds between participants
+PAGE_RETRY_ATTEMPTS = 2
+FETCH_TIMEOUT = 50000  # ms per page
+UPDATE_INTERVAL_MINUTES = 60  # hourly update
 AUTO_START = os.environ.get("AUTO_START", "true").lower() == "true"
 
 RENDER_URL = os.environ.get("RENDER_URL", "")
 KEEP_ALIVE = os.environ.get("KEEP_ALIVE", "true").lower() == "true"
 
 # ---------- LOGGING ----------
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
 logging.getLogger("playwright").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -101,15 +106,16 @@ update_status = {
     "success_count": 0
 }
 
-# ---------- HELPERS ----------
+# ---------- KEEP ALIVE ----------
 def keep_alive_ping():
     if RENDER_URL and KEEP_ALIVE:
         try:
-            logger.info("🏓 Keep-alive ping")
+            logger.info(f"🏓 Keep-alive ping to {RENDER_URL}")
             requests.get(f"{RENDER_URL}/health", timeout=10)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Keep-alive ping failed: {e}")
 
+# ---------- UTILITIES ----------
 def parse_completed_labs(html_text: str) -> List[str]:
     soup = BeautifulSoup(html_text, "html.parser")
     page_text = soup.get_text(separator="\n").lower()
@@ -119,60 +125,16 @@ def parse_completed_labs(html_text: str) -> List[str]:
             completed.append(TARGET_LABS[i])
     return completed
 
-async def create_light_context(browser) -> BrowserContext:
-    """
-    Create a context that blocks heavy resources (images, fonts, styles, media, trackers)
-    to speed up loads and reduce memory/CPU.
-    """
-    context = await browser.new_context(
-        viewport={"width": 1280, "height": 720},
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    )
-
-    async def handler(route, request):
-        # Block resource types that aren't needed for text scraping
-        if request.resource_type in ("image", "font", "stylesheet", "media", "other"):
-            await route.abort()
-        else:
-            await route.continue_()
-
-    try:
-        await context.route("**/*", handler)
-    except Exception:
-        # route may fail on some builds; ignore and continue
-        pass
-    return context
-
-async def fetch_profile_light(page: Page, url: str) -> str:
-    """
-    Load a profile with retries. Prefer waiting for minimal selector if present,
-    otherwise return content as soon as domcontentloaded arrives.
-    """
+async def fetch_profile_playwright(page: Page, url: str) -> str:
     last_error = None
     for attempt in range(PAGE_RETRY_ATTEMPTS):
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
-            # Try minimal selectors that might indicate labs area.
-            # These selectors are conservative — adjust if you know exact structure.
-            selectors = [
-                "div.profile",                # generic
-                "div.completed-labs",         # hypothetical
-                "section",                    # generic fallback
-            ]
-            got = False
-            for sel in selectors:
-                try:
-                    await page.wait_for_selector(sel, timeout=2000)
-                    got = True
-                    break
-                except Exception:
-                    continue
-            # no heavy fixed wait — fetch content immediately
-            content = await page.content()
-            return content
+            await page.wait_for_timeout(1200)
+            return await page.content()
         except Exception as e:
             last_error = e
-            logger.debug(f"Attempt {attempt+1}/{PAGE_RETRY_ATTEMPTS} for {url} failed: {e}")
+            logger.warning(f"Attempt {attempt+1}/{PAGE_RETRY_ATTEMPTS} failed for {url}: {e}")
             if attempt < PAGE_RETRY_ATTEMPTS - 1:
                 await asyncio.sleep(1)
     raise last_error
@@ -183,12 +145,8 @@ async def process_user_with_page(user: dict, page: Page):
     user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
 
     try:
-        logger.debug(f"Fetching {name} ({profile})")
-        html = await fetch_profile_light(page, profile)
-        # quick early check: if no target-lab keywords present, treat as 0 quickly
-        low = html.lower()
-        found_any = any(keyword in low for keyword in TARGET_LABS_LOWER[:5]) if TARGET_LABS_LOWER else False
-        # parse fully regardless; parse_completed_labs is cheap
+        logger.info(f"📥 Fetching {name}")
+        html = await fetch_profile_playwright(page, profile)
         completed = parse_completed_labs(html)
         doc_data = {
             "userId": user_id,
@@ -227,63 +185,6 @@ async def process_user_with_page(user: dict, page: Page):
     finally:
         await asyncio.sleep(POLITE_DELAY)
 
-async def run_batch(batch: List[dict]):
-    """
-    Runs one batch: launches browser, creates N pages (N = CONCURRENCY),
-    and processes users round-robin on those pages.
-    """
-    logger.info(f"    Launching browser for batch of {len(batch)} users (concurrency={CONCURRENCY})")
-    try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True, args=[
-                "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"
-            ])
-            # create light context that blocks heavy resources
-            context = await create_light_context(browser)
-            # create pages up to concurrency (reuse to reduce overhead)
-            pages = []
-            for _ in range(min(CONCURRENCY, len(batch))):
-                pages.append(await context.new_page())
-
-            # Round-robin assign tasks to pages using semaphore pattern
-            sem = asyncio.Semaphore(CONCURRENCY)
-
-            async def worker(user, page):
-                async with sem:
-                    await process_user_with_page(user, page)
-
-            tasks = []
-            for idx, user in enumerate(batch):
-                page = pages[idx % len(pages)]
-                tasks.append(worker(user, page))
-
-            # gather with return_exceptions True to continue on errors
-            await asyncio.gather(*tasks, return_exceptions=True)
-
-            # cleanup
-            for pg in pages:
-                try:
-                    await pg.close()
-                except Exception:
-                    pass
-            try:
-                await context.close()
-            except Exception:
-                pass
-            try:
-                await browser.close()
-            except Exception:
-                pass
-    except Exception as e:
-        logger.error(f"Batch error: {e}")
-        # if browser launch failed, mark progress for these users to avoid infinite loops
-        with update_lock:
-            update_status["progress"] += len(batch)
-            update_status["errors"].append({"batch_error": str(e)})
-    finally:
-        # free memory
-        gc.collect()
-
 async def run_full_update():
     with update_lock:
         if update_status["running"]:
@@ -298,18 +199,47 @@ async def run_full_update():
         })
 
     total = len(PARTICIPANTS)
-    logger.info(f"🚀 Starting update for {total} participants (batch_size={BATCH_SIZE}, concurrency={CONCURRENCY})")
+    logger.info(f"🚀 Starting update for {total} participants (batch_size={BATCH_SIZE})")
 
     try:
         for batch_index in range(0, total, BATCH_SIZE):
             batch = PARTICIPANTS[batch_index: batch_index + BATCH_SIZE]
-            logger.info(f"➡️ Batch {batch_index // BATCH_SIZE + 1}: {len(batch)} users")
+            logger.info(f"➡️ Processing batch {batch_index // BATCH_SIZE + 1}: {len(batch)} users")
             keep_alive_ping()
-            await run_batch(batch)
-            logger.info(f"Sleeping {BATCH_DELAY}s between batches (quick memory release)")
+
+            try:
+                async with async_playwright() as p:
+                    browser = await p.chromium.launch(headless=True, args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--single-process",
+                    ])
+                    context = await browser.new_context(
+                        viewport={"width": 1280, "height": 720},
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                    )
+                    page = await context.new_page()
+
+                    for user in batch:
+                        await process_user_with_page(user, page)
+
+                    await page.close()
+                    await context.close()
+                    await browser.close()
+
+            except Exception as batch_exc:
+                logger.error(f"Batch-level error: {batch_exc}")
+                with update_lock:
+                    update_status["progress"] += len(batch)
+                    update_status["errors"].append({"batch_error": str(batch_exc)})
+
+            logger.info(f"Sleeping {BATCH_DELAY}s between batches to release memory")
             await asyncio.sleep(BATCH_DELAY)
 
         logger.info(f"✅ Update finished. Success: {update_status['success_count']}/{total}")
+
         try:
             db.collection("metadata").document("last_update").set({
                 "timestamp": SERVER_TIMESTAMP,
@@ -327,7 +257,6 @@ async def run_full_update():
         with update_lock:
             update_status["running"] = False
             update_status["last_run_end"] = datetime.utcnow().isoformat()
-        gc.collect()
 
 def background_update():
     try:
@@ -343,10 +272,22 @@ def scheduled_update():
     keep_alive_ping()
     Thread(target=background_update, daemon=True).start()
 
-scheduler.add_job(func=scheduled_update, trigger=IntervalTrigger(minutes=UPDATE_INTERVAL_MINUTES), id="leaderboard_update", name="Update leaderboard data", replace_existing=True)
+scheduler.add_job(
+    func=scheduled_update,
+    trigger=IntervalTrigger(minutes=UPDATE_INTERVAL_MINUTES),
+    id="leaderboard_update",
+    name="Update leaderboard data",
+    replace_existing=True
+)
 
 if RENDER_URL and KEEP_ALIVE:
-    scheduler.add_job(func=keep_alive_ping, trigger=IntervalTrigger(minutes=10), id="keep_alive", name="Keep alive ping", replace_existing=True)
+    scheduler.add_job(
+        func=keep_alive_ping,
+        trigger=IntervalTrigger(minutes=10),
+        id="keep_alive",
+        name="Keep alive ping",
+        replace_existing=True
+    )
 
 def get_next_run_time():
     job = scheduler.get_job("leaderboard_update")
@@ -375,8 +316,7 @@ def health():
         "scheduler_running": scheduler.running,
         "next_run": get_next_run_time(),
         "last_update": update_status.get("last_run_end"),
-        "running": update_status.get("running"),
-        "progress": update_status.get("progress")
+        "running": update_status.get("running")
     })
 
 @app.route("/update-status", methods=["GET"])
@@ -432,10 +372,11 @@ def ensure_scheduler():
 atexit.register(lambda: scheduler.shutdown() if scheduler.running else None)
 
 if __name__ == "__main__":
-    logger.info("Starting leaderboard server (optimized)")
+    logger.info("Starting leaderboard server (Render-optimized)")
     logger.info(f"Participants: {len(PARTICIPANTS)}, batch_size={BATCH_SIZE}, concurrency={CONCURRENCY}")
     scheduler.start()
     if AUTO_START:
         Thread(target=background_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
+
