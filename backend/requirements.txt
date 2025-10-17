@@ -10,4 +10,6 @@ uuid==1.30
 asyncio==3.4.3
 gunicorn==22.0.0
 greenlet==3.0.3
+aiohttp
+
 
