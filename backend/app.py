@@ -130,7 +130,6 @@ async def fetch_profile_playwright(page: Page, url: str) -> str:
     for attempt in range(PAGE_RETRY_ATTEMPTS):
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
-            await asyncio.sleep(0.8)
             await page.wait_for_timeout(1200)
             return await page.content()
         except Exception as e:
@@ -210,7 +209,7 @@ async def run_full_update():
 
             try:
                 async with async_playwright() as p:
-                    browser = await p.firefox.launch(headless=True, args=[
+                    browser = await p.chromium.launch(headless=True, args=[
                         "--no-sandbox",
                         "--disable-setuid-sandbox",
                         "--disable-dev-shm-usage",
@@ -380,5 +379,6 @@ if __name__ == "__main__":
         Thread(target=background_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
