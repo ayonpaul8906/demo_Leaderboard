@@ -32,8 +32,8 @@ FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")
 
 # Render Free Tier safe settings
 CONCURRENCY = 2  # max concurrent pages to avoid memory overflow
-BATCH_SIZE = 25  # participants per batch
-BATCH_DELAY = 60  # seconds between batches to free memory
+BATCH_SIZE = 20  # participants per batch
+BATCH_DELAY = 10  # seconds between batches to free memory
 POLITE_DELAY = 1.5  # seconds between participants
 PAGE_RETRY_ATTEMPTS = 2
 FETCH_TIMEOUT = 50000  # ms per page
@@ -130,6 +130,7 @@ async def fetch_profile_playwright(page: Page, url: str) -> str:
     for attempt in range(PAGE_RETRY_ATTEMPTS):
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
+            await asyncio.sleep(0.8)
             await page.wait_for_timeout(1200)
             return await page.content()
         except Exception as e:
@@ -209,7 +210,7 @@ async def run_full_update():
 
             try:
                 async with async_playwright() as p:
-                    browser = await p.chromium.launch(headless=True, args=[
+                    browser = await p.firefox.launch(headless=True, args=[
                         "--no-sandbox",
                         "--disable-setuid-sandbox",
                         "--disable-dev-shm-usage",
@@ -379,4 +380,5 @@ if __name__ == "__main__":
         Thread(target=background_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
