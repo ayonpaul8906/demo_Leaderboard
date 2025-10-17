@@ -5,10 +5,9 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from threading import Thread, Lock
-from bs4 import BeautifulSoup
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -18,9 +17,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 import requests
-
-# Playwright
-from playwright.async_api import async_playwright, Page
+import aiohttp
 
 # ---------- CONFIG ----------
 BASE_DIR = os.path.dirname(__file__)
@@ -30,28 +27,24 @@ LABS_FILE = os.path.join(BASE_DIR, "labs.json")
 FIREBASE_KEY_PATH = os.path.join(BASE_DIR, "firebase-admin-key.json")
 FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")
 
-# Render Free Tier safe settings
-CONCURRENCY = 2  # max concurrent pages to avoid memory overflow
-BATCH_SIZE = 20  # participants per batch
-BATCH_DELAY = 10  # seconds between batches to free memory
-POLITE_DELAY = 1.5  # seconds between participants
-PAGE_RETRY_ATTEMPTS = 2
-FETCH_TIMEOUT = 50000  # ms per page
-UPDATE_INTERVAL_MINUTES = 60  # hourly update
+# Tunables - keep conservative for Render free tier
+CONCURRENCY = int(os.environ.get("CONCURRENCY", "4"))   # safe value; lower if memory issues
+BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "25"))
+BATCH_DELAY = float(os.environ.get("BATCH_DELAY", "8.0"))
+POLITE_DELAY = float(os.environ.get("POLITE_DELAY", "0.5"))
+PAGE_RETRY_ATTEMPTS = int(os.environ.get("PAGE_RETRY_ATTEMPTS", "2"))
+FETCH_TIMEOUT = int(os.environ.get("FETCH_TIMEOUT", "25000"))  # ms for aiohttp
+UPDATE_INTERVAL_MINUTES = int(os.environ.get("UPDATE_INTERVAL", "60"))
 AUTO_START = os.environ.get("AUTO_START", "true").lower() == "true"
 
 RENDER_URL = os.environ.get("RENDER_URL", "")
 KEEP_ALIVE = os.environ.get("KEEP_ALIVE", "true").lower() == "true"
 
 # ---------- LOGGING ----------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logging.getLogger("apscheduler").setLevel(logging.WARNING)
-logging.getLogger("playwright").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger(__name__)
+logging.getLogger("apscheduler").setLevel(logging.WARNING)
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
 
 # ---------- FIREBASE INIT ----------
 try:
@@ -110,82 +103,155 @@ update_status = {
 def keep_alive_ping():
     if RENDER_URL and KEEP_ALIVE:
         try:
-            logger.info(f"🏓 Keep-alive ping to {RENDER_URL}")
+            logger.info("🏓 Keep-alive ping")
             requests.get(f"{RENDER_URL}/health", timeout=10)
-        except Exception as e:
-            logger.warning(f"Keep-alive ping failed: {e}")
-
-# ---------- UTILITIES ----------
-def parse_completed_labs(html_text: str) -> List[str]:
-    soup = BeautifulSoup(html_text, "html.parser")
-    page_text = soup.get_text(separator="\n").lower()
-    completed = []
-    for i, lab in enumerate(TARGET_LABS_LOWER):
-        if lab in page_text:
-            completed.append(TARGET_LABS[i])
-    return completed
-
-async def fetch_profile_playwright(page: Page, url: str) -> str:
-    last_error = None
-    for attempt in range(PAGE_RETRY_ATTEMPTS):
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
-            await page.wait_for_timeout(1200)
-            return await page.content()
-        except Exception as e:
-            last_error = e
-            logger.warning(f"Attempt {attempt+1}/{PAGE_RETRY_ATTEMPTS} failed for {url}: {e}")
-            if attempt < PAGE_RETRY_ATTEMPTS - 1:
-                await asyncio.sleep(1)
-    raise last_error
-
-async def process_user_with_page(user: dict, page: Page):
-    name = user.get("name", "Unknown").strip()
-    profile = user.get("profile", "")
-    user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
-
-    try:
-        logger.info(f"📥 Fetching {name}")
-        html = await fetch_profile_playwright(page, profile)
-        completed = parse_completed_labs(html)
-        doc_data = {
-            "userId": user_id,
-            "name": name,
-            "displayName": name,
-            "email": user.get("email", ""),
-            "profilePic": user.get("profilePic", ""),
-            "profile": profile,
-            "completed_labs": completed,
-            "completed_count": len(completed),
-            "last_updated": SERVER_TIMESTAMP,
-            "error": None
-        }
-        db.collection("leaderboard").document(user_id).set(doc_data, merge=True)
-        with update_lock:
-            update_status["progress"] += 1
-            update_status["success_count"] += 1
-        logger.info(f"✅ {name}: {len(completed)} labs")
-    except Exception as e:
-        logger.error(f"❌ Error for {name}: {e}")
-        with update_lock:
-            update_status["errors"].append({"name": name, "error": str(e)})
-            update_status["progress"] += 1
-        try:
-            db.collection("leaderboard").document(user_id).set({
-                "userId": user_id,
-                "name": name,
-                "displayName": name,
-                "profile": profile,
-                "error": str(e),
-                "last_updated": SERVER_TIMESTAMP,
-                "completed_count": 0
-            }, merge=True)
         except Exception:
             pass
-    finally:
+
+# ---------- UTILITIES: JSON endpoints for Cloud Skills Boost ----------
+def extract_profile_id(url: str) -> Optional[str]:
+    """
+    Extract the profile ID from various forms of the profile field.
+    Accepts plain id or full URL.
+    """
+    if not url:
+        return None
+    # If already just an id:
+    if len(url) == 36 and "-" in url:
+        return url
+    # Try extract from URL
+    import re
+    m = re.search(r"public_profiles\/([a-zA-Z0-9\-]+)", url)
+    if m:
+        return m.group(1)
+    # Try last path segment
+    parts = url.strip().rstrip("/").split("/")
+    if parts:
+        candidate = parts[-1]
+        if len(candidate) >= 8:
+            return candidate
+    return None
+
+async def fetch_profile_json(session: aiohttp.ClientSession, profile_id: str) -> List[str]:
+    """
+    Fetch JSON endpoints for a profile and return a list of completed titles (strings).
+    Endpoints tried: /badges and /quests (the site uses both).
+    """
+    base = f"https://www.cloudskillsboost.google/public_profiles/{profile_id}"
+    endpoints = ["/badges", "/quests"]
+    collected = []
+    headers = {"User-Agent": "StudyJamsLeaderboard/1.0 (+your-email@example.com)"}
+    for ep in endpoints:
+        url = base + ep
+        try:
+            async with session.get(url, headers=headers, timeout=FETCH_TIMEOUT/1000) as resp:
+                if resp.status == 200:
+                    text = await resp.text()
+                    # Some endpoints return JSON list; others may wrap in object. Try parse.
+                    try:
+                        data = json.loads(text)
+                        if isinstance(data, list):
+                            for item in data:
+                                # item might be dict with 'title' or 'name' fields
+                                if isinstance(item, dict):
+                                    title = item.get("title") or item.get("name") or item.get("label")
+                                    if title:
+                                        collected.append(title.strip())
+                        elif isinstance(data, dict):
+                            # If object, try to find arrays inside
+                            for v in data.values():
+                                if isinstance(v, list):
+                                    for item in v:
+                                        if isinstance(item, dict):
+                                            title = item.get("title") or item.get("name") or item.get("label")
+                                            if title:
+                                                collected.append(title.strip())
+                    except Exception:
+                        # not JSON? try simple heuristics: look for "title" using substrings
+                        pass
+                else:
+                    # non-200 - ignore
+                    pass
+        except Exception as e:
+            logger.debug(f"JSON fetch error for {url}: {e}")
+    # dedupe and normalize
+    unique = []
+    lower_seen = set()
+    for t in collected:
+        tl = t.strip()
+        if not tl:
+            continue
+        tlower = tl.lower()
+        if tlower not in lower_seen:
+            unique.append(tl)
+            lower_seen.add(tlower)
+    return unique
+
+def match_target_labs_from_list(completed_titles: List[str]) -> List[str]:
+    # match against TARGET_LABS (canonical case)
+    matched = []
+    lower_completed = set([c.strip().lower() for c in completed_titles])
+    for lab, lab_lower in zip(TARGET_LABS, TARGET_LABS_LOWER):
+        if lab_lower in lower_completed:
+            matched.append(lab)
+    return matched
+
+# ---------- PROFILE CHECK & UPDATE ----------
+async def fetch_and_update_profile(session: aiohttp.ClientSession, user: dict):
+    """
+    For a single user dict {id,name,profile,...}, fetch JSON endpoints and update Firestore.
+    """
+    name = user.get("name") or ""
+    profile_field = user.get("profile") or ""
+    profile_id = extract_profile_id(profile_field)
+    user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
+
+    if not profile_id:
+        # write zero and return
+        db.collection("leaderboard").document(user_id).set({
+            "userId": user_id,
+            "name": name,
+            "profile": profile_field,
+            "completed_labs": [],
+            "completed_count": 0,
+            "error": "invalid_profile",
+            "last_updated": SERVER_TIMESTAMP
+        }, merge=True)
+        logger.info(f"{name}: invalid profile id -> skipped")
+        return
+
+    try:
+        completed_titles = await fetch_profile_json(session, profile_id)
+        matched = match_target_labs_from_list(completed_titles)
+
+        db.collection("leaderboard").document(user_id).set({
+            "userId": user_id,
+            "name": name,
+            "profile": profile_field,
+            "completed_labs": matched,
+            "completed_count": len(matched),
+            "error": None,
+            "last_updated": SERVER_TIMESTAMP
+        }, merge=True)
+
+        logger.info(f"Updated {name}: {len(matched)} labs ({len(completed_titles)} raw items)")
+
+        # small polite delay
         await asyncio.sleep(POLITE_DELAY)
 
-async def run_full_update():
+    except Exception as e:
+        logger.exception(f"Failed updating {name}: {e}")
+        db.collection("leaderboard").document(user_id).set({
+            "userId": user_id,
+            "name": name,
+            "profile": profile_field,
+            "error": str(e),
+            "completed_count": 0,
+            "last_updated": SERVER_TIMESTAMP
+        }, merge=True)
+
+# ---------- BATCH RUNNER ----------
+async def run_full_update_async():
     with update_lock:
         if update_status["running"]:
             logger.warning("Update already running — skipping")
@@ -199,138 +265,70 @@ async def run_full_update():
         })
 
     total = len(PARTICIPANTS)
-    logger.info(f"🚀 Starting update for {total} participants (batch_size={BATCH_SIZE})")
+    logger.info(f"Starting update for {total} participants (batch_size={BATCH_SIZE}, concurrency={CONCURRENCY})")
 
-    try:
-        for batch_index in range(0, total, BATCH_SIZE):
-            batch = PARTICIPANTS[batch_index: batch_index + BATCH_SIZE]
-            logger.info(f"➡️ Processing batch {batch_index // BATCH_SIZE + 1}: {len(batch)} users")
-            keep_alive_ping()
-
-            try:
-                async with async_playwright() as p:
-                    browser = await p.chromium.launch(headless=True, args=[
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--single-process",
-                    ])
-                    context = await browser.new_context(
-                        viewport={"width": 1280, "height": 720},
-                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                    )
-                    page = await context.new_page()
-
-                    for user in batch:
-                        await process_user_with_page(user, page)
-
-                    await page.close()
-                    await context.close()
-                    await browser.close()
-
-            except Exception as batch_exc:
-                logger.error(f"Batch-level error: {batch_exc}")
+    sem = asyncio.Semaphore(CONCURRENCY)
+    async with aiohttp.ClientSession() as session:
+        async def guarded_update(user):
+            async with sem:
+                await fetch_and_update_profile(session, user)
                 with update_lock:
-                    update_status["progress"] += len(batch)
-                    update_status["errors"].append({"batch_error": str(batch_exc)})
+                    update_status["progress"] += 1
 
-            logger.info(f"Sleeping {BATCH_DELAY}s between batches to release memory")
-            await asyncio.sleep(BATCH_DELAY)
+        tasks = [guarded_update(u) for u in PARTICIPANTS]
+        # run in batches to lower memory usage: schedule them but gather in chunks
+        chunk = 100  # reduce memory by gathering in chunks
+        for i in range(0, len(tasks), chunk):
+            batch_tasks = tasks[i:i+chunk]
+            await asyncio.gather(*batch_tasks, return_exceptions=True)
+            logger.info(f"Processed {min(i+chunk, len(tasks))}/{len(tasks)}")
+            await asyncio.sleep(BATCH_DELAY)  # small pause between big chunks
 
-        logger.info(f"✅ Update finished. Success: {update_status['success_count']}/{total}")
+    logger.info("All profile updates attempted")
+    with update_lock:
+        update_status["running"] = False
+        update_status["last_run_end"] = datetime.utcnow().isoformat()
 
-        try:
-            db.collection("metadata").document("last_update").set({
-                "timestamp": SERVER_TIMESTAMP,
-                "success_count": update_status["success_count"],
-                "total_count": total,
-                "errors": len(update_status["errors"])
-            })
-        except Exception as e:
-            logger.warning(f"Failed to write metadata: {e}")
-
-    except Exception as e:
-        logger.error(f"Fatal error in run_full_update: {e}")
-
-    finally:
-        with update_lock:
-            update_status["running"] = False
-            update_status["last_run_end"] = datetime.utcnow().isoformat()
-
-def background_update():
+def run_full_update():
     try:
-        asyncio.run(run_full_update())
+        asyncio.run(run_full_update_async())
     except Exception as e:
         logger.error(f"Background update error: {e}")
 
-# ---------- SCHEDULER ----------
-scheduler = BackgroundScheduler()
+# ---------- FLASK ROUTES ----------
+@app.route("/profile-completed", methods=["GET"])
+def api_profile_completed():
+    """
+    Quick test endpoint: /profile-completed?profileId=<id> OR ?profileUrl=<full-url>
+    returns matched target labs and raw list.
+    """
+    profile_id = request.args.get("profileId") or None
+    profile_url = request.args.get("profileUrl") or None
+    if not profile_id and profile_url:
+        profile_id = extract_profile_id(profile_url)
+    if not profile_id:
+        return jsonify({"error": "missing_profile_id"}), 400
 
-def scheduled_update():
-    logger.info("⏰ Scheduled update triggered")
-    keep_alive_ping()
-    Thread(target=background_update, daemon=True).start()
+    async def getit():
+        async with aiohttp.ClientSession() as session:
+            titles = await fetch_profile_json(session, profile_id)
+            matched = match_target_labs_from_list(titles)
+            return {"profileId": profile_id, "matched": matched, "raw_count": len(titles), "raw": titles[:100]}
 
-scheduler.add_job(
-    func=scheduled_update,
-    trigger=IntervalTrigger(minutes=UPDATE_INTERVAL_MINUTES),
-    id="leaderboard_update",
-    name="Update leaderboard data",
-    replace_existing=True
-)
+    data = asyncio.run(getit())
+    return jsonify(data)
 
-if RENDER_URL and KEEP_ALIVE:
-    scheduler.add_job(
-        func=keep_alive_ping,
-        trigger=IntervalTrigger(minutes=10),
-        id="keep_alive",
-        name="Keep alive ping",
-        replace_existing=True
-    )
-
-def get_next_run_time():
-    job = scheduler.get_job("leaderboard_update")
-    return job.next_run_time.isoformat() if job and job.next_run_time else None
-
-# ---------- ROUTES ----------
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "status": "running",
-        "message": "Study Jams Leaderboard API",
-        "endpoints": {
-            "health": "/health",
-            "leaderboard": "/leaderboard-data",
-            "status": "/update-status",
-            "trigger": "/trigger-update"
-        }
-    })
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({
-        "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
-        "participants_count": len(PARTICIPANTS),
-        "scheduler_running": scheduler.running,
-        "next_run": get_next_run_time(),
-        "last_update": update_status.get("last_run_end"),
-        "running": update_status.get("running")
-    })
+@app.route("/trigger-update", methods=["GET"])
+def trigger_manual_update():
+    if update_status["running"]:
+        return jsonify({"status": "already_running"}), 409
+    Thread(target=run_full_update, daemon=True).start()
+    return jsonify({"status": "update_started"})
 
 @app.route("/update-status", methods=["GET"])
 def get_update_status():
     s = update_status.copy()
-    s["next_run"] = get_next_run_time()
     return jsonify(s)
-
-@app.route("/trigger-update", methods=["GET", "POST"])
-def trigger_manual_update():
-    if update_status["running"]:
-        return jsonify({"status": "already_running", "progress": f"{update_status['progress']}/{update_status['total']}" }), 409
-    Thread(target=background_update, daemon=True).start()
-    return jsonify({"status": "update_started", "timestamp": datetime.utcnow().isoformat()})
 
 @app.route("/leaderboard-data", methods=["GET"])
 def get_leaderboard_data():
@@ -344,9 +342,6 @@ def get_leaderboard_data():
             res.append({
                 "userId": data.get("userId"),
                 "name": data.get("name"),
-                "displayName": data.get("displayName", data.get("name")),
-                "email": data.get("email", ""),
-                "profilePic": data.get("profilePic", ""),
                 "completed_count": data.get("completed_count", 0),
                 "completed_labs": data.get("completed_labs", []),
                 "profile": data.get("profile"),
@@ -359,26 +354,41 @@ def get_leaderboard_data():
         logger.error(f"Error fetching leaderboard: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "ts": datetime.utcnow().isoformat()})
+
+# ---------- SCHEDULER ----------
+scheduler = BackgroundScheduler()
+
+def scheduled_update():
+    logger.info("Scheduled update triggered")
+    keep_alive_ping()
+    Thread(target=run_full_update, daemon=True).start()
+
+scheduler.add_job(func=scheduled_update, trigger=IntervalTrigger(minutes=UPDATE_INTERVAL_MINUTES), id="leaderboard_update", name="Update leaderboard data", replace_existing=True)
+
+if RENDER_URL and KEEP_ALIVE:
+    scheduler.add_job(func=keep_alive_ping, trigger=IntervalTrigger(minutes=10), id="keep_alive", name="Keep alive ping", replace_existing=True)
+
+def get_next_run_time():
+    job = scheduler.get_job("leaderboard_update")
+    return job.next_run_time.isoformat() if job and job.next_run_time else None
+
 # ---------- STARTUP ----------
 @app.before_request
 def ensure_scheduler():
     if not scheduler.running:
         scheduler.start()
-        logger.info(f"Scheduler started (interval={UPDATE_INTERVAL_MINUTES} minutes)")
         if AUTO_START:
-            logger.info("Auto-starting initial update")
-            Thread(target=background_update, daemon=True).start()
+            Thread(target=run_full_update, daemon=True).start()
 
 atexit.register(lambda: scheduler.shutdown() if scheduler.running else None)
 
 if __name__ == "__main__":
-    logger.info("Starting leaderboard server (Render-optimized)")
-    logger.info(f"Participants: {len(PARTICIPANTS)}, batch_size={BATCH_SIZE}, concurrency={CONCURRENCY}")
+    logger.info("Starting leaderboard server (json-based)")
     scheduler.start()
     if AUTO_START:
-        Thread(target=background_update, daemon=True).start()
+        Thread(target=run_full_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
-
-
-
