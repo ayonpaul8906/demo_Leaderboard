@@ -1,4 +1,4 @@
-# app.py
+# app.py 28 mins
 import asyncio
 import json
 import logging
@@ -18,6 +18,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 import requests
+
+# Playwright
 from playwright.async_api import async_playwright, Page
 
 # ---------- CONFIG ----------
@@ -28,13 +30,14 @@ LABS_FILE = os.path.join(BASE_DIR, "labs.json")
 FIREBASE_KEY_PATH = os.path.join(BASE_DIR, "firebase-admin-key.json")
 FIREBASE_CREDENTIALS = os.environ.get("FIREBASE_CREDENTIALS")
 
-CONCURRENCY = 2           # avoid memory overflow
-BATCH_SIZE = 20
-BATCH_DELAY = 10
-POLITE_DELAY = 1.5
+# Render Free Tier safe settings
+CONCURRENCY = 2  # max concurrent pages to avoid memory overflow
+BATCH_SIZE = 20  # participants per batch
+BATCH_DELAY = 10  # seconds between batches to free memory
+POLITE_DELAY = 1.5  # seconds between participants
 PAGE_RETRY_ATTEMPTS = 2
-FETCH_TIMEOUT = 60000     # 60s per page
-UPDATE_INTERVAL_MINUTES = 60
+FETCH_TIMEOUT = 50000  # ms per page
+UPDATE_INTERVAL_MINUTES = 60  # hourly update
 AUTO_START = os.environ.get("AUTO_START", "true").lower() == "true"
 
 RENDER_URL = os.environ.get("RENDER_URL", "")
@@ -50,11 +53,11 @@ logging.getLogger("apscheduler").setLevel(logging.WARNING)
 logging.getLogger("playwright").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# ---------- FIREBASE ----------
+# ---------- FIREBASE INIT ----------
 try:
     if FIREBASE_CREDENTIALS:
         cred_dict = json.loads(FIREBASE_CREDENTIALS)
-        if "private_key" in cred_dict:
+        if "private_key" in cred_dict and isinstance(cred_dict["private_key"], str):
             cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
         cred = credentials.Certificate(cred_dict)
     elif os.path.exists(FIREBASE_KEY_PATH):
@@ -68,7 +71,7 @@ except Exception as e:
     logger.error(f"❌ Firebase init failed: {e}")
     raise
 
-# ---------- LOAD CONFIG ----------
+# ---------- LOAD CONFIG FILES ----------
 try:
     with open(PARTICIPANTS_FILE, "r", encoding="utf-8") as f:
         PARTICIPANTS = json.load(f)
@@ -91,6 +94,7 @@ except Exception as e:
 app = Flask(__name__)
 CORS(app)
 
+# ---------- GLOBAL STATE ----------
 update_lock = Lock()
 update_status = {
     "running": False,
@@ -106,50 +110,44 @@ update_status = {
 def keep_alive_ping():
     if RENDER_URL and KEEP_ALIVE:
         try:
-            requests.get(f"{RENDER_URL}/health", timeout=10)
             logger.info(f"🏓 Keep-alive ping to {RENDER_URL}")
+            requests.get(f"{RENDER_URL}/health", timeout=10)
         except Exception as e:
             logger.warning(f"Keep-alive ping failed: {e}")
 
-# ---------- SCRAPER HELPERS ----------
-async def fetch_completed_labs(page: Page, url: str) -> List[str]:
-    """Navigate to a Cloud Skills Boost profile and extract all visible lab names."""
+# ---------- UTILITIES ----------
+def parse_completed_labs(html_text: str) -> List[str]:
+    soup = BeautifulSoup(html_text, "html.parser")
+    page_text = soup.get_text(separator="\n").lower()
+    completed = []
+    for i, lab in enumerate(TARGET_LABS_LOWER):
+        if lab in page_text:
+            completed.append(TARGET_LABS[i])
+    return completed
+
+async def fetch_profile_playwright(page: Page, url: str) -> str:
     last_error = None
     for attempt in range(PAGE_RETRY_ATTEMPTS):
         try:
-            await page.goto(url, wait_until="networkidle", timeout=FETCH_TIMEOUT)
-            await page.wait_for_timeout(2000)
-            await page.wait_for_selector("div.profile-course-card__title, div.ql-card-title", timeout=15000)
-            labs = await page.eval_on_selector_all(
-                "div.profile-course-card__title, div.ql-card-title",
-                "els => els.map(e => e.textContent.trim())"
-            )
-            return labs
+            await page.goto(url, wait_until="domcontentloaded", timeout=FETCH_TIMEOUT)
+            await page.wait_for_timeout(1200)
+            return await page.content()
         except Exception as e:
             last_error = e
-            logger.warning(f"Retry {attempt+1}/{PAGE_RETRY_ATTEMPTS} for {url}: {e}")
+            logger.warning(f"Attempt {attempt+1}/{PAGE_RETRY_ATTEMPTS} failed for {url}: {e}")
             if attempt < PAGE_RETRY_ATTEMPTS - 1:
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
     raise last_error
-
-def parse_completed_labs(lab_titles: List[str]) -> List[str]:
-    completed = []
-    for lab in TARGET_LABS:
-        for found in lab_titles:
-            if lab.lower() in found.lower():
-                completed.append(lab)
-                break
-    return completed
 
 async def process_user_with_page(user: dict, page: Page):
     name = user.get("name", "Unknown").strip()
     profile = user.get("profile", "")
     user_id = str(user.get("id") or name or uuid.uuid4()).replace(" ", "_")
+
     try:
         logger.info(f"📥 Fetching {name}")
-        lab_titles = await fetch_completed_labs(page, profile)
-        completed = parse_completed_labs(lab_titles)
-
+        html = await fetch_profile_playwright(page, profile)
+        completed = parse_completed_labs(html)
         doc_data = {
             "userId": user_id,
             "name": name,
@@ -187,7 +185,6 @@ async def process_user_with_page(user: dict, page: Page):
     finally:
         await asyncio.sleep(POLITE_DELAY)
 
-# ---------- MAIN UPDATE LOOP ----------
 async def run_full_update():
     with update_lock:
         if update_status["running"]:
@@ -202,47 +199,60 @@ async def run_full_update():
         })
 
     total = len(PARTICIPANTS)
-    logger.info(f"🚀 Starting update for {total} participants")
+    logger.info(f"🚀 Starting update for {total} participants (batch_size={BATCH_SIZE})")
 
     try:
         for batch_index in range(0, total, BATCH_SIZE):
             batch = PARTICIPANTS[batch_index: batch_index + BATCH_SIZE]
-            logger.info(f"➡️ Batch {batch_index // BATCH_SIZE + 1} ({len(batch)} users)")
+            logger.info(f"➡️ Processing batch {batch_index // BATCH_SIZE + 1}: {len(batch)} users")
             keep_alive_ping()
 
             try:
                 async with async_playwright() as p:
                     browser = await p.chromium.launch(headless=True, args=[
-                        "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
-                        "--disable-gpu", "--single-process"
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--single-process",
                     ])
                     context = await browser.new_context(
                         viewport={"width": 1280, "height": 720},
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
                     )
                     page = await context.new_page()
+
                     for user in batch:
                         await process_user_with_page(user, page)
+
+                    await page.close()
                     await context.close()
                     await browser.close()
-            except Exception as e:
-                logger.error(f"Batch-level error: {e}")
+
+            except Exception as batch_exc:
+                logger.error(f"Batch-level error: {batch_exc}")
                 with update_lock:
                     update_status["progress"] += len(batch)
-                    update_status["errors"].append({"batch_error": str(e)})
+                    update_status["errors"].append({"batch_error": str(batch_exc)})
 
-            logger.info(f"🕒 Waiting {BATCH_DELAY}s between batches")
+            logger.info(f"Sleeping {BATCH_DELAY}s between batches to release memory")
             await asyncio.sleep(BATCH_DELAY)
 
-        logger.info(f"✅ Update finished: {update_status['success_count']}/{total}")
-        db.collection("metadata").document("last_update").set({
-            "timestamp": SERVER_TIMESTAMP,
-            "success_count": update_status["success_count"],
-            "total_count": total,
-            "errors": len(update_status["errors"])
-        })
+        logger.info(f"✅ Update finished. Success: {update_status['success_count']}/{total}")
+
+        try:
+            db.collection("metadata").document("last_update").set({
+                "timestamp": SERVER_TIMESTAMP,
+                "success_count": update_status["success_count"],
+                "total_count": total,
+                "errors": len(update_status["errors"])
+            })
+        except Exception as e:
+            logger.warning(f"Failed to write metadata: {e}")
+
     except Exception as e:
-        logger.error(f"Fatal error: {e}")
+        logger.error(f"Fatal error in run_full_update: {e}")
+
     finally:
         with update_lock:
             update_status["running"] = False
@@ -284,7 +294,7 @@ def get_next_run_time():
     return job.next_run_time.isoformat() if job and job.next_run_time else None
 
 # ---------- ROUTES ----------
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "status": "running",
@@ -297,7 +307,7 @@ def home():
         }
     })
 
-@app.route("/health")
+@app.route("/health", methods=["GET"])
 def health():
     return jsonify({
         "status": "ok",
@@ -309,7 +319,7 @@ def health():
         "running": update_status.get("running")
     })
 
-@app.route("/update-status")
+@app.route("/update-status", methods=["GET"])
 def get_update_status():
     s = update_status.copy()
     s["next_run"] = get_next_run_time()
@@ -318,17 +328,11 @@ def get_update_status():
 @app.route("/trigger-update", methods=["GET", "POST"])
 def trigger_manual_update():
     if update_status["running"]:
-        return jsonify({
-            "status": "already_running",
-            "progress": f"{update_status['progress']}/{update_status['total']}"
-        }), 409
+        return jsonify({"status": "already_running", "progress": f"{update_status['progress']}/{update_status['total']}" }), 409
     Thread(target=background_update, daemon=True).start()
-    return jsonify({
-        "status": "update_started",
-        "timestamp": datetime.utcnow().isoformat()
-    })
+    return jsonify({"status": "update_started", "timestamp": datetime.utcnow().isoformat()})
 
-@app.route("/leaderboard-data")
+@app.route("/leaderboard-data", methods=["GET"])
 def get_leaderboard_data():
     try:
         docs = db.collection("leaderboard").stream()
@@ -360,16 +364,20 @@ def get_leaderboard_data():
 def ensure_scheduler():
     if not scheduler.running:
         scheduler.start()
-        logger.info(f"Scheduler started ({UPDATE_INTERVAL_MINUTES}min interval)")
+        logger.info(f"Scheduler started (interval={UPDATE_INTERVAL_MINUTES} minutes)")
         if AUTO_START:
+            logger.info("Auto-starting initial update")
             Thread(target=background_update, daemon=True).start()
 
 atexit.register(lambda: scheduler.shutdown() if scheduler.running else None)
 
 if __name__ == "__main__":
-    logger.info("Starting leaderboard server")
+    logger.info("Starting leaderboard server (Render-optimized)")
+    logger.info(f"Participants: {len(PARTICIPANTS)}, batch_size={BATCH_SIZE}, concurrency={CONCURRENCY}")
     scheduler.start()
     if AUTO_START:
         Thread(target=background_update, daemon=True).start()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+
